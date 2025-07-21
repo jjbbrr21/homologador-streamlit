@@ -26,29 +26,20 @@ if archivo_nuevo:
         match = difflib.get_close_matches(val, homologadas, n=1, cutoff=0)
         mejor_match = match[0] if match else ""
         score = difflib.SequenceMatcher(None, val, mejor_match).ratio() if match else 0
-
-        # Si la similitud es menor a 0.9, mostrar mensaje personalizado
-        sugerido = mejor_match if score >= 0.9 else "NO HAY CANDIDATO ADECUADO"
-
         resultados.append({
             "entrada": val,
-            "sugerido": sugerido,
+            "sugerido": mejor_match,
             "similitud": round(score, 3),
             "confirmado": ""
         })
 
     df_resultado = pd.DataFrame(resultados)
-
     st.subheader("Resultados de clasificación (similitud < 0.9)")
     df_filtrado = df_resultado[df_resultado['similitud'] < 0.9].reset_index(drop=True)
 
     for idx, row in df_filtrado.iterrows():
         st.write(f"**Entrada:** {row['entrada']} (sugerido: {row['sugerido']}, similitud: {row['similitud']})")
-        df_filtrado.at[idx, "confirmado"] = st.text_input(
-            f"Ingrese clasificación final para '{row['entrada']}'",
-            value=row["sugerido"],
-            key=f"input_{idx}"
-        )
+        df_filtrado.at[idx, "confirmado"] = st.text_input(f"Ingrese clasificación final para '{row['entrada']}'", value=row["sugerido"], key=f"input_{idx}")
 
     if st.button("Guardar resultado en CSV"):
         df_filtrado.to_csv("homologaciones_clasificadas.csv", index=False)
